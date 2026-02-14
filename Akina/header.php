@@ -27,6 +27,9 @@ define("theprofile", authorProfile($this->options->profile,theurl));
 	if (!empty($this->options->menu) && in_array('dark', $this->options->menu)) {
 		echo '<link rel="stylesheet" href="'.theurl.'css/dark.css" type="text/css" />';
 	}
+	if ($this->is('post') || $this->is('page')) {
+		echo '<link rel="stylesheet" href="'.theurl.'css/mdmdt.css" type="text/css" />';
+	}
 	?>
   <!-- 个性化选项 CSS 代码 -->
   <?php $this->need('style.php'); ?>

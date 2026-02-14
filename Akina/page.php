@@ -50,12 +50,14 @@
 				<header class="entry-header">
 					<h1 class="entry-title"><?php $this->title() ?></h1>
 				</header>
-				<div class="entry-content">
+				<div class="entry-content mdmdt-render">
+					<div id="write">
 					<?php
 						$pattern = '/\<img.*?src\=\"(.*?)\"[^>]*>/i';
 						$replacement = '<a href="$1" alt="'.$this->title.'" title="点击放大图片"><img class="aligncenter" src="$1" title="'.$this->title.'"></a>';
 						echo preg_replace($pattern, $replacement, $this->content);
 					?>
+					</div>
 				</div>
 			</article>
 		</main>

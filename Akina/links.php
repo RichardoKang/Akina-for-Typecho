@@ -49,7 +49,8 @@
 <div id="content" class="site-content">
 	<span class="linkss-title"><?php $this->title() ?></span>
 	<article class="hentry">
-		<div class="entry-content">
+		<div class="entry-content mdmdt-render">
+		  <div id="write">
 		  <?php if( !$this->content && !class_exists('Links_Plugin')) {
 			  echo'
 				<div class="nodata">
@@ -85,6 +86,7 @@
            ';
 				};
 			}?>
+		  </div>
 		</div>
 	</article>
 </div>

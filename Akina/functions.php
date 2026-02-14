@@ -318,7 +318,7 @@ function createCatalog($obj) {
     global $catalog_count;
     $catalog = array();
     $catalog_count = 0;
-    $obj = preg_replace_callback('/<h([1-3])(.*?)>(.*?)<\/h\1>/i', function($obj) {
+    $obj = preg_replace_callback('/<h([1-6])(.*?)>(.*?)<\/h\1>/i', function($obj) {
         global $catalog;
         global $catalog_count;
         $catalog_count ++;
@@ -341,8 +341,11 @@ function getCatalog() {
                 if ($catalog_depth == $prev_depth) {
                     $index .= '</li>'."\n";
                 } elseif ($catalog_depth > $prev_depth) {
-                    $to_depth++;
-                    $index .= '<ul>'."\n";
+                    $depth_diff = $catalog_depth - $prev_depth;
+                    for ($i=0; $i<$depth_diff; $i++) {
+                        $to_depth++;
+                        $index .= '<ul>'."\n";
+                    }
                 } else {
                     $to_depth2 = ($to_depth > ($prev_depth - $catalog_depth)) ? ($prev_depth - $catalog_depth) : $to_depth;
                     if ($to_depth2) {
@@ -354,7 +357,7 @@ function getCatalog() {
                     $index .= '</li>';
                 }
             }
-            $index .= '<li><a href="#cl-'.$catalog_item['count'].'">'.$catalog_item['text'].'</a>';
+            $index .= '<li class="toc-level-'.$catalog_depth.'"><a href="#cl-'.$catalog_item['count'].'">'.$catalog_item['text'].'</a>';
             $prev_depth = $catalog_item['depth'];
         }
         for ($i=0; $i<=$to_depth; $i++) {

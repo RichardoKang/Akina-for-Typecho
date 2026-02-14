@@ -174,6 +174,194 @@ var mNav_hide = function(){
 }
 
 /*
+ * Code Highlight
+*/
+var prismLanguageAlias = {
+	js: 'javascript',
+	node: 'javascript',
+	ts: 'javascript',
+	jsx: 'javascript',
+	tsx: 'javascript',
+	vue: 'markup',
+	svelte: 'markup',
+	md: 'markup',
+	markdown: 'markup',
+	html: 'markup',
+	xml: 'markup',
+	svg: 'markup',
+	yml: 'json',
+	yaml: 'json',
+	toml: 'bash',
+	ini: 'bash',
+	conf: 'bash',
+	config: 'bash',
+	cxx: 'cpp',
+	cc: 'cpp',
+	hpp: 'cpp',
+	hh: 'cpp',
+	cs: 'csharp',
+	'c#': 'csharp',
+	objc: 'c',
+	objcxx: 'cpp',
+	objectivec: 'c',
+	objectivecpp: 'cpp',
+	py: 'python',
+	rb: 'clike',
+	pl: 'clike',
+	sh: 'bash',
+	shell: 'bash',
+	zsh: 'bash',
+	fish: 'bash',
+	bat: 'bash',
+	cmd: 'bash',
+	ps1: 'bash',
+	powershell: 'bash',
+	ps: 'bash',
+	dockerfile: 'bash',
+	makefile: 'bash',
+	gradle: 'java',
+	kt: 'kotlin',
+	kts: 'kotlin',
+	sqlite: 'sql',
+	mysql: 'sql',
+	postgresql: 'sql',
+	pgsql: 'sql',
+	mariadb: 'sql',
+	csv: 'none',
+	log: 'none',
+	plaintext: 'none',
+	plain: 'none',
+	text: 'none',
+	txt: 'none',
+	console: 'shell-session'
+};
+
+var supportedPrismLanguages = {
+	none: true,
+	markup: true,
+	css: true,
+	clike: true,
+	javascript: true,
+	bash: true,
+	c: true,
+	csharp: true,
+	cpp: true,
+	git: true,
+	go: true,
+	java: true,
+	jq: true,
+	json: true,
+	kotlin: true,
+	php: true,
+	python: true,
+	'shell-session': true,
+	sql: true
+};
+
+var findLanguageInClass = function(className){
+	if (!className) return '';
+	var tokens = className.toLowerCase().split(/\s+/);
+	for (var i = 0; i < tokens.length; i++) {
+		var token = tokens[i].trim();
+		if (!token) continue;
+		token = token.replace(/^brush:/, '').replace(/;$/, '');
+		if (token.indexOf('language-') === 0) token = token.slice(9);
+		if (token.indexOf('lang-') === 0) token = token.slice(5);
+		if (supportedPrismLanguages[token] || prismLanguageAlias[token]) {
+			return token;
+		}
+	}
+	return '';
+}
+
+var getCodeLanguage = function(el){
+	if (!el) return '';
+	var className = el.className || '';
+	var match = className.match(/(?:^|\s)(?:language|lang)-([a-z0-9+#-]+)/i);
+	if (match && match[1]) return match[1].toLowerCase();
+	var dataLanguage = el.getAttribute('data-language') || el.getAttribute('data-lang');
+	if (dataLanguage) return dataLanguage.toLowerCase();
+	return findLanguageInClass(className);
+}
+
+var normalizeCodeLanguage = function(lang){
+	if (!lang) return '';
+	var normalized = lang.toLowerCase();
+	var mapped = prismLanguageAlias[normalized] || normalized;
+	return supportedPrismLanguages[mapped] ? mapped : 'none';
+}
+
+var inferCodeLanguage = function(codeText){
+	if (!codeText) return '';
+	var text = codeText.slice(0, 2000);
+	var trimmed = text.trim();
+
+	if (/^#!.*\b(bash|sh|zsh|fish)\b/m.test(trimmed)) return 'bash';
+	if (/^\s*</.test(trimmed) && /<\/?[a-z][\s\S]*>/i.test(trimmed)) return 'markup';
+	if (/^\s*[{[][\s\S]*[}\]]\s*$/.test(trimmed) && /"[^"]+"\s*:/.test(trimmed)) return 'json';
+	if (/\bSELECT\b[\s\S]*\bFROM\b/i.test(text) || /\bINSERT\s+INTO\b/i.test(text) || /\bUPDATE\b[\s\S]*\bSET\b/i.test(text)) return 'sql';
+	if (/<\?php/i.test(text)) return 'php';
+	if (/\b(def|import|from|class)\b[\s\S]*:/.test(text) && /(^|\n)\s{0,4}[A-Za-z_][A-Za-z0-9_]*\s*=/.test(text)) return 'python';
+	if (/\b(func|package|import)\b/.test(text) && /\b(go)\b/.test(text)) return 'go';
+	if (/\b(public|private|protected|class|interface)\b/.test(text) && /\b(static|void|new)\b/.test(text)) return 'java';
+	if (/#include\s*[<"]/i.test(text) || /\bstd::|->|::/.test(text)) return 'cpp';
+	if (/\b(function|const|let|var|=>|import|export)\b/.test(text)) return 'javascript';
+
+	return '';
+}
+
+var setCodeLanguageClass = function(el, lang){
+	if (!el || !lang) return;
+	var oldClasses = (el.className || '').match(/(?:^|\s)(?:language|lang)-[a-z0-9+#-]+/ig);
+	if (oldClasses) {
+		for (var i = 0; i < oldClasses.length; i++) {
+			el.classList.remove(oldClasses[i].trim());
+		}
+	}
+	el.classList.add('language-' + lang);
+}
+
+var highlightCodeBlocks = function(root){
+	root = root || document;
+	var blocks = root.querySelectorAll('pre');
+	for (var i = 0; i < blocks.length; i++) {
+		var pre = blocks[i];
+		var code = pre.querySelector('code');
+		var sourceText = code ? code.textContent : pre.textContent;
+		var lang = normalizeCodeLanguage(getCodeLanguage(code) || getCodeLanguage(pre));
+		if (!lang || lang === 'none') {
+			lang = normalizeCodeLanguage(inferCodeLanguage(sourceText));
+		}
+		// 没有任何可用信息时，保留可读的基础高亮，避免整站“无高亮”。
+		if ((!lang || lang === 'none') && sourceText && sourceText.trim()) {
+			lang = 'javascript';
+		}
+		setCodeLanguageClass(pre, lang);
+		if (code) {
+			setCodeLanguageClass(code, lang);
+		}
+	}
+
+	var runPrism = function(){
+		if (window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
+			window.Prism.highlightAllUnder(root);
+			return true;
+		}
+		return false;
+	}
+	if (!runPrism()) {
+		// global.js 在 prism.js 前加载，做短轮询兜底。
+		var retry = 0;
+		var timer = window.setInterval(function(){
+			retry++;
+			if (runPrism() || retry >= 12) {
+				window.clearInterval(timer);
+			}
+		}, 80);
+	}
+}
+
+/*
  * AJAX Single
 */
 var loadSingle = function(){
@@ -187,6 +375,10 @@ var loadSingle = function(){
 	            nextHref = $(data).find("#pagination a").attr("href");
 	            // In the new content
 	            $("#main").append(result.fadeIn(300));
+	            var mainBox = document.getElementById('main');
+	            if (mainBox) {
+	            	highlightCodeBlocks(mainBox);
+	            }
 	            $("#pagination a").removeClass("loading").text("加载更多");
 	            if ( nextHref != undefined ) {
 	                $("#pagination a").attr("href", nextHref);
@@ -363,6 +555,7 @@ jQuery(document).ready(function($){
 			$('body').append('<div id="preloader"><div id="preloader-inner"></div></div>'); // 加载过度动画
 	    }).on('pjax:complete', function() { // 加载完毕				
 			clickEvent(); // 一些点击事件
+			highlightCodeBlocks(document);
 			$('#preloader').remove(); // 删除过度动画
 	    });
 	}
@@ -391,14 +584,8 @@ loading();
 clickEvent();
 loadSingle();
 mNav();
+highlightCodeBlocks(document);
 } )( jQuery );
-//为默认编辑器代码标签添加高亮
-var preLigut = document.getElementsByTagName("pre");
-for(var i = 0;  i < preLigut.length; i++){
-    if(preLigut[i].className==""){
-        preLigut[i].classList.add("language-js");
-    }
-}
 //除友链外，自动添加blank nofollow noopener noreferrer标签
 $(document).ready(function(){
 	$("a[href*='://']:not(a[href^='"+document.location.protocol+"//"+document.location.host+"'],a[href^='javascript:'])").attr({target:"_blank",rel:"nofollow noopener noreferrer"});

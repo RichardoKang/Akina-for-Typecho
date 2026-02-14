@@ -51,7 +51,8 @@
 				<header class="entry-header">
 					<h1 class="entry-title"><?php $this->title() ?></h1>
 				</header>
-				<div class="entry-content">
+				<div class="entry-content mdmdt-render">
+					<div id="write">
 					<!--编辑器内容-->
 					<?php
 						$pattern = '/\<img.*?src\=\"(.*?)\"[^>]*>/i';
@@ -69,6 +70,7 @@
                             <li><?php _e('没有任何标签'); ?></li>
                         </ul>
                     <?php endif; ?>
+					</div>
 				</div>
 			</article>
 		</main>

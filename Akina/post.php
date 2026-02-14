@@ -10,8 +10,10 @@
 		<main id="main" class="site-main" role="main">
 		<article class="hentry">
 		<!-- 加密文章输出 -->
-		<div class="entry-content">
+		<div class="entry-content mdmdt-render">
+		<div id="write">
 		<?php $this->content(); ?>
+		</div>
 		</div>
 <?php else: ?>
 <!-- 不是加密文章 -->
@@ -74,12 +76,14 @@
 		</div>	
 		</header>
 		<!-- 正文输出 -->
-		<div class="entry-content">
+		<div class="entry-content mdmdt-render">
+		<div id="write">
 		<?php
 		    $pattern = '/\<img.*?src\=\"(.*?)\"[^>]*>/i';
 		    $replacement = '<a href="$1" alt="'.$this->title.'" title="点击放大图片"><img class="aligncenter" src="$1" title="'.$this->title.'"></a>';
 		    echo preg_replace($pattern, $replacement, $this->content);
 		?>
+		</div>
 		</div>
 		<!-- 广告展示 -->
 		<?php
