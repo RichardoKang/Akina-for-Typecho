@@ -11,7 +11,7 @@
  $this->need('header.php');
 // 文章置顶
 if($this->options->sticky){
-	$sticky = $this->options->sticky; //置顶的文章cid，按照排序输入, 请以半角逗号或空格分隔
+	$sticky = $this->options->sticky; //置顶的文章cid，按照排序输入
 	if($sticky && $this->is('index') || $this->is('front')){
     $sticky_cids = explode(',', strtr($sticky, ' ', ','));//分割文本 
     $sticky_html = "<span style='color:#ff6d6d;font-weight:600'>[置顶] </span>"; //置顶标题的 html css
