@@ -214,13 +214,30 @@ if($this->options->sticky){
 			<div class="post-entry">
 				<div class="feature">
 					<a href="<?php $this->permalink() ?>"><div class="overlay"><i class="iconfont">&#xe61e;</i></div>
-            <img src="<?php 
-              if(array_key_exists('icon',unserialize($this->___fields())) & $this->fields->icon != null) {
-                $this->fields->icon();
-                } else {
-                  if ($deuIndex > 7) {$deuIndex = 1;}
-                  echo theurl.'images/random/deu'.$deuIndex++.'.jpg';
+            <img src="<?php
+              $postFields = unserialize($this->___fields());
+              $featureImage = '';
+
+              if (is_array($postFields)) {
+                if (array_key_exists('icon', $postFields) && !empty($this->fields->icon)) {
+                  $featureImage = $this->fields->icon;
+                } elseif (array_key_exists('thumbnail', $postFields) && !empty($this->fields->thumbnail)) {
+                  $featureImage = $this->fields->thumbnail;
                 }
+              } else {
+                if (!empty($this->fields->icon)) {
+                  $featureImage = $this->fields->icon;
+                } elseif (!empty($this->fields->thumbnail)) {
+                  $featureImage = $this->fields->thumbnail;
+                }
+              }
+
+              if (!empty($featureImage)) {
+                echo $featureImage;
+              } else {
+                if ($deuIndex > 7) {$deuIndex = 1;}
+                echo theurl.'images/random/deu'.$deuIndex++.'.jpg';
+              }
             ?>">
           </a>
 				</div>
